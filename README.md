@@ -9,5 +9,11 @@ This repository contains a syntax definition and a color theme for use with Subl
 There's also a YAML version of Imperative which is easier to read and edit. I use AAAPackageDev to convert it into the plist format Sublime Text reads. There are some Unity3D / C# specific regexes in Imperative, but I usually disable them before I commit. If you use Unity, and you want some cool IDE highlighting, you can turn them back on by uncommenting their #include statements in the YAML file.
 
 ---
+Todo: 
+- Figure out how to make this available on Package Control
+- Add some basic snippets / completions for extremely common things, functions and while loops, et cetera
+- There's probably some work to be done to make this compatible with other people's MFTLs
+
+---
 ![](https://github.com/iasEnvy/varicolor/blob/master/Screenshots/c-example.png)
 ![](https://github.com/iasEnvy/varicolor/blob/master/Screenshots/c-sharp-example.png)
