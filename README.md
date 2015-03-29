@@ -4,3 +4,4 @@ Colorful and Generic Syntax Highlighting. Suitable for most imperative programmi
 ---
 
 ![](https://github.com/iasEnvy/varicolor/blob/master/Screenshots/c-example.png)
+![](https://github.com/iasEnvy/varicolor/blob/master/Screenshots/c-sharp-example.png)
