@@ -97,23 +97,11 @@
 		</dict>
 		<dict>
 			<key>include</key>
-			<string>#unityengine</string>
-		</dict>
-		<dict>
-			<key>include</key>
 			<string>#calls</string>
 		</dict>
 		<dict>
 			<key>include</key>
 			<string>#pointers</string>
-		</dict>
-		<dict>
-			<key>include</key>
-			<string>#unitycomponents</string>
-		</dict>
-		<dict>
-			<key>include</key>
-			<string>#unityruntime</string>
 		</dict>
 		<dict>
 			<key>include</key>
@@ -1885,7 +1873,7 @@
 						<key>1</key>
 						<dict>
 							<key>name</key>
-							<string>keyword.keyword.type.defined.source.imperative</string>
+							<string>keyword.type.defined.source.imperative</string>
 						</dict>
 						<key>10</key>
 						<dict>
@@ -3254,6 +3242,6 @@
 	<key>scopeName</key>
 	<string>source.imperative</string>
 	<key>uuid</key>
-	<string>0623aa92-1182-4d71-b3de-6c87bb234934</string>
+	<string>2623aa92-1182-4d71-b3de-6d87bb234934</string>
 </dict>
 </plist>
