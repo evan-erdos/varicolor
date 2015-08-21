@@ -1,36 +1,1115 @@
-%YAML 1.2
+%YAML1.2
 ---
 name: Varicolor
-file_extensions: [c,h,cc,cpp,cs,f,fs,java,test]
-scope: source.varicolor
+file_extensions: [c, h, cc, cpp, hpp, cs, f, fs, java, test]
+scope: varicolor  #fd725c old
 
 variables:
-  token: '[A-Za-z_]\w*'
-  builtin: '\b(bool|byte|sbyte|char|decimal|double|float|int|uint|long|ulong|object|short|ushort|string)(\b[\[\]<>\?\*]*)'
-  accessor: '(public|internal|protected|private)'
+  _token: '[A-Za-z_]\w*:{2}?\w*'
+  token: '\b@?[A-Za-z_]\w*:{2}?\w*\b'
+  string: '@?"(\\.|[^"])*+"'
+  _type: 'bool|byte|sbyte|char|decimal|double|float|int|uint|long|ulong|object|ushort|string|short|single'
+  type: '\b(?:{{_type}})\b'
+  array: '{{type}}(\[\])*'
+  generic: '{{token}}\s*<\s*[A-Za-z_][@\w:<\s,\.\[\]]*\s*>+'
+  _accessor: 'public|internal|protected|private'
+  accessor: '\b(?:{{_accessor}})\b'
+  _modifier: 'intern|extern|operator|virtual|static|extends|is|checked|unchecked|override|out|ref|readonly|params|stackalloc|explicit|implicit'
+  modifier: '\b(?:{{_modifier}})\b'
+  _keyword: '{{_accessor}}|{{_modifier}}|if|else|for|foreach|while|do|new|this|true|false|return|default|override'
+  keyword: '\b(?:new|else|this|true|false|return|default)\b'
 
 contexts:
   prototype:
-    - include: comments
+  - include: comments
+  - include: strings
+  - include: control
+  - include: constants
+  - include: directives
+  - include: includes
+  - include: interfaces
+  - include: enumerations
+  - include: modifiers
+  - include: classes
+  - include: operators
+  - include: c_sharp
+  - include: builtin_types
+  - include: structures
+  - include: attributes
+  - include: properties
+  - include: functions
+  - include: generics
+  - include: typedef
+  - include: aliases
+  - include: pointers
+  - include: indexers
+  #- include: indirection
+  #- include: unity_types
+  - include: lexical_guesswork
+  - include: defined_types
+  - include: braces
+
   comments:
-    - scope: comment.line.source.varicolor
-      match: (//)(?!@).*
-      captures:
-        1: comment.block.source.varicolor
-    - scope: comment.line.source.varicolor
-      match: /\*(?!@)
-      push: block_comment
-
+  - scope: function.call.varicolor
+    match: (//@{{token}}).*
+    captures:
+      1: entity.name.function.a.varicolor
+  - scope: comment.line.varicolor
+    match: (//).*$
+  - scope: comment.line.varicolor
+    match: /\*
+    push: block_comment
   block_comment:
-    - meta_scope: comment.block.source.varicolor
-    - scope: comment.block.source.varicolor
-      match: \*/
-      pop: true
+  - meta_scope: comment.block.varicolor
+  - scope: comment.line.varicolor
+    match: \*/
+    pop: true
+  - scope: comment.line.varicolor
+    match: \*
 
-  string:
-    - scope: constant.character.escape.source.varicolor
-      match: \\.
+  strings:
+  - scope: string.quoted.double.varicolor
+    match: '@?"'
+    push: _strings
+  _strings:
+  - meta_scope: string.quoted.double.varicolor
+  - scope: constant.character.escaped.varicolor
+    match: '\\.'
+  - scope: string.quoted.double.varicolor
+    match: '"'
+    pop: true
+
+  operators:
+  - scope: keyword.other.varicolor
+    match: \->
+  - scope: keyword.operator.comparison.varicolor
+    match: '!=|=[=<>]|[<>]=|&&|\|\||<|>'
+  - scope: keyword.operator.assignment.varicolor
+    match: (?<=:):(?!:)
+  - scope: keyword.operator.assignment.varicolor
+    match: '=|\|=|&=|=&|=\||%=|!|~|\?|%|\->|\||&|^|<<|>>'
+  - scope: constant.language.varicolor
+    match: '[/\^\*\+\-%&\|]=|\^|\||&|\->|\?|\%|\+|\-|\*|\/|\+\+|\-\-|\*\*'
+  - scope: punctuation.varicolor
+    match: '[;,\.]'
+
+  control:
+  - scope: keyword.new.varicolor
+    match: \b(f)(o)(r)(e)(a)(c)(h)\s*(\()
+    captures:
+      1: keyword.i.new.varicolor
+      2: keyword.h.new.varicolor
+      3: keyword.g.new.varicolor
+      4: keyword.f.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.d.new.varicolor
+      7: keyword.c.new.varicolor
+    push: controlflow
+  - scope: keyword.new.varicolor
+    match: \b(e)(l)(s)(e)\s+(i)(f)\s*\(
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.c.new.varicolor
+      3: keyword.e.new.varicolor
+      4: keyword.g.new.varicolor
+      5: keyword.h.new.varicolor
+      6: keyword.i.new.varicolor
+    push: controlflow
+  - scope: keyword.new.varicolor
+    match: \b(i)(f)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.c.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(e)(l)(s)(e)\b
+    captures:
+      1: keyword.d.new.varicolor
+      2: keyword.c.new.varicolor
+      3: keyword.b.new.varicolor
+      4: keyword.a.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b((i)(n))\b
+    captures:
+      2: keyword.f.new.varicolor
+      3: keyword.h.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(a)(s)\b
+    captures:
+      1: keyword.g.new.varicolor
+      2: keyword.i.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(w)(h)(i)(l)(e)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.d.new.varicolor
+      5: keyword.e.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(f)(o)(r)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(s)(w)(i)(t)(c)(h)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.d.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.f.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(c)(a)(s)(e)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.d.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(g)(o)(t)(o)\b
+    captures:
+      1: keyword.f.new.varicolor
+      2: keyword.g.new.varicolor
+      3: keyword.h.new.varicolor
+      4: keyword.i.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(b)(r)(e)(a)(k)\b
+    captures:
+      1: keyword.e.new.varicolor
+      2: keyword.d.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.b.new.varicolor
+      5: keyword.a.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(t)(y)(p)(e)(o)(f)\b
+    captures:
+      1: keyword.i.new.varicolor
+      2: keyword.h.new.varicolor
+      3: keyword.g.new.varicolor
+      4: keyword.f.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.d.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(s)(i)(z)(e)(o)(f)\b
+    captures:
+      1: keyword.i.new.varicolor
+      2: keyword.h.new.varicolor
+      3: keyword.g.new.varicolor
+      4: keyword.f.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.d.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(r)(e)(t)(u)(r)(n)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.d.new.varicolor
+      4: keyword.f.new.varicolor
+      5: keyword.g.new.varicolor
+      6: keyword.i.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(c)(o)(n)(t)(i)(n)(u)(e)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.d.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.f.new.varicolor
+      7: keyword.g.new.varicolor
+      8: keyword.h.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(r)(e)(a)(d)(o)(n)(l)(y)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.d.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.f.new.varicolor
+      7: keyword.g.new.varicolor
+      8: keyword.h.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(d)(e)(f)(a)(u)(l)(t)\b
+    captures:
+      1: keyword.a.new.varicolor
+      2: keyword.b.new.varicolor
+      3: keyword.c.new.varicolor
+      4: keyword.d.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.f.new.varicolor
+      7: keyword.g.new.varicolor
+  - scope: keyword.new.varicolor
+    match: \b(?<=else if)\s*\(
+    push: controlflow
+  - scope: keyword.new.varicolor
+    match: \b(?<=else|if|while|for|switch|typeof|sizeof)\s*(\()
+    push: controlflow
+  - scope: constant.language.varicolor
+    match: \b(except|throw)\b
+  - scope: constant.language.varicolor
+    match: \b(try|finally)\s*
+  - scope: constant.language.varicolor
+    match: \b(catch)\s*
+  - scope: constant.other.varicolor
+    match: \b(lock|async|await|yield|event|partial|abstract)\b
+  #- scope: keyword.new.varicolor
+  #  match: \b(do|else|if|while|for|switch|typeof|sizeof|return|continue|case|break|default|goto)\b
+
+  controlflow:
+  - include: prototype
+  - include: hierarchy
+  #- scope: keyword.control.scope.varicolor
+  #  match: (\)\s*\{)+?
+  #  pop: true
+  #- scope: keyword.control.scope.varicolor
+  #  match: (\})+?
+  #  pop: true
+  - scope: keyword.new.varicolor
+    match: (\))
+    pop: true
+
+  #catch:
+  #- include: prototype
+  #- include: hierarchy
+  #- scope: constant.language.varicolor
+  #  match: (\)\s*\{)+?
+  #- scope: constant.language.varicolor
+  #  match: (\})+?
+  #  pop: true
+
+  #exception:
+  #- include: prototype
+  #- include: hierarchy
+  #- scope: constant.language.varicolor
+  #  match: (\})+?
+  #  pop: true
+
+  #foreach:
+  #- include: prototype
+  #- include: hierarchy
+  #- scope: keyword.new.varicolor
+  #  match: \b(i)(n)\b
+  #  captures:
+  #    1: keyword.e.new.varicolor
+  #    2: keyword.f.new.varicolor
+  #- scope: keyword.control.scope.varicolor
+  #  match: (\)\s*\{)+?
+  #- scope: keyword.control.scope.varicolor
+  #  match: (\})+?
+  #  pop: true
+  #- scope: keyword.new.varicolor
+  #  match: (\))+?
+  #  pop: true
+
+  constants:
+  - scope: constant.numeric.varicolor
+    match: \b0[Xx][A-Fa-f0-9]?{,8}
+  - scope: constant.numeric.varicolor
+    match: (\s\-)?\b\d+\b
+  - scope: constant.numeric.varicolor
+    match: (\s\-)?\.\d+(L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?
+  - scope: constant.numeric.varicolor
+    match: \b(((\d+\.?\d*)|(\.\d+))((e|E)(\+|-)?\d+)?)(L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\b
+  - scope: constant.language.varicolor
+    match: \b((t)(r)(u)(e))|((f)(a)(l)(s)(e))\b
+    captures:
+      2: entity.namespace.g.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.c.varicolor
+      5: entity.namespace.a.varicolor
+      7: entity.namespace.i.varicolor
+      8: entity.namespace.g.varicolor
+      9: entity.namespace.e.varicolor
+      10: entity.namespace.c.varicolor
+      11: entity.namespace.a.varicolor
+
+  directives:
+  - scope: meta.preprocessor.varicolor
+    match: (\#)\s*(if)\s+({{token}})
+    captures:
+      1: constant.language.varicolor
+      2: keyword.control.varicolor
+      3: constant.language.varicolor
+    push: _directives
+  - scope: meta.preprocessor.varicolor
+    match: '(\#)\s*(define|undef)\s+({{token}})'
+    captures:
+      1: constant.language.varicolor
+      2: keyword.control.varicolor
+      3: constant.language.varicolor
+  - scope: meta.preprocessor.varicolor
+    match: '(\#)\s*({{token}})'
+    captures:
+      1: constant.language.varicolor
+      2: keyword.control.varicolor
+  - scope: meta.preprocessor.varicolor
+    match: (#)\s*(include)\s+(<[\w\.\-\s/]+>)
+  _directives:
+  - scope: meta.preprocessor.varicolor
+    match: (\#)\s*(elif)\s+({{token}})
+    captures:
+      1: constant.language.varicolor
+      2: keyword.control.varicolor
+      3: constant.language.varicolor
+  - scope: meta.preprocessor.varicolor
+    match: (\#)\s*(else)
+    captures:
+      1: constant.language.varicolor
+      2: keyword.control.varicolor
+  - scope: meta.preprocessor.varicolor
+    match: (\#)\s*(endif)\s*
+    captures:
+      1: constant.language.varicolor
+      2: keyword.control.varicolor
+    pop: true
+  - meta_scope: directive.cond.varicolor
+
+  includes:
+  - scope: keyword.other.using.varicolor
+    match: \b(import|include)\b
+  - scope: keyword.other.using.varicolor
+    match: \b(u)(s)(i)(n)(g)\s+
+    captures:
+      1: entity.class.h.varicolor
+      2: entity.class.g.varicolor
+      3: entity.class.f.varicolor
+      4: entity.class.e.varicolor
+      5: entity.class.d.varicolor
+    push: _using
+  - scope: entity.namespace.varicolor
+    match: \b(?<=namespace)\s+
+    push: _namespace
+  - scope: entity.namespace.varicolor
+    match: \b(n)(a)(m)(e)(s)(p)(a)(c)(e)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.b.varicolor
+      3: entity.namespace.c.varicolor
+      4: entity.namespace.d.varicolor
+      5: entity.namespace.e.varicolor
+      6: entity.namespace.g.varicolor
+      7: entity.namespace.h.varicolor
+      8: entity.namespace.h.varicolor
+      9: entity.namespace.i.varicolor
+  _using:
+  - meta_scope: entity.class.varicolor
+  - scope: entity.namespace.varicolor
+    match: '{{token}}\s*(=)'
+    captures:
+      1: keyword.operator.assignment.varicolor
+  - scope: punctuation.varicolor
+    match: ;
+    pop: true
+  - include: prototype
+  _namespace:
+  - meta_scope: entity.namespace.varicolor
+  - scope: punctuation.varicolor
+    match: \{
+    pop: true
+  - include: prototype
+
+  interfaces:
+  - scope: entity.interface.varicolor
+    match: \b(i)(n)(t)(e)(r)(f)(a)(c)(e)\b
+    captures:
+      1: entity.interface.a.varicolor
+      2: entity.interface.b.varicolor
+      3: entity.interface.c.varicolor
+      4: entity.interface.d.varicolor
+      5: entity.interface.e.varicolor
+      6: entity.interface.f.varicolor
+      7: entity.interface.g.varicolor
+      8: entity.interface.h.varicolor
+      9: entity.interface.i.varicolor
+  - scope: entity.interface.varicolor
+    match: \b(?<=interface)\s+{{generic}}\s*(:?)
+    captures:
+      1: entity.interface.a.varicolor
+    push: _interfaces
+  - scope: entity.interface.varicolor
+    match: \b(?<=interface)\s+{{token}}\s*(:?)
+    captures:
+      1: entity.interface.a.varicolor
+    push: _interfaces
+  _interfaces:
+  - meta_scope: entity.interface.varicolor
+  - scope: punctuation.varicolor
+    match: \{
+    pop: true
+  - include: prototype
+
+  enumerations:
+  - scope: entity.enum.varicolor
+    match: \b(e)(n)(u)(m)\s+{{token}}\s*(:)?
+    captures:
+      1: entity.enum.a.varicolor
+      2: entity.enum.b.varicolor
+      3: entity.enum.c.varicolor
+      4: entity.enum.d.varicolor
+      5: entity.enum.a.varicolor
+    push: _enumerations
+  _enumerations:
+  - meta_scope: entity.enum.varicolor
+  - scope: punctuation.varicolor
+    match: \}
+    pop: true
+  - include: prototype
+
+  modifiers:
+  - scope: entity.modifier.varicolor
+    match: \b(s)(t)(a)(t)(i)(c)\b
+    captures:
+      1: entity.enum.i.varicolor
+      2: entity.enum.h.varicolor
+      3: entity.enum.g.varicolor
+      4: entity.enum.f.varicolor
+      5: entity.enum.e.varicolor
+      6: entity.enum.d.varicolor
+  - scope: entity.name.tag.varicolor
+    match: \b(p)(u)(b)(l)(i)(c)\b
+    captures:
+      1: class.namespace.a.varicolor
+      2: class.namespace.b.varicolor
+      3: class.namespace.c.varicolor
+      4: class.namespace.d.varicolor
+      5: class.namespace.e.varicolor
+      6: class.namespace.f.varicolor
+  - scope: entity.name.tag.varicolor
+    match: \b(i)(n)(t)(e)(r)(n)(a)(l)\b
+    captures:
+      1: class.namespace.a.varicolor
+      2: class.namespace.b.varicolor
+      3: class.namespace.c.varicolor
+      4: class.namespace.d.varicolor
+      5: class.namespace.e.varicolor
+      6: class.namespace.f.varicolor
+      7: class.namespace.g.varicolor
+      8: class.namespace.h.varicolor
+  - scope: entity.name.tag.varicolor
+    match: \b(p)(r)(o)(t)(e)(c)(t)(e)(d)\b
+    captures:
+      1: class.namespace.a.varicolor
+      2: class.namespace.b.varicolor
+      3: class.namespace.c.varicolor
+      4: class.namespace.d.varicolor
+      5: class.namespace.e.varicolor
+      6: class.namespace.f.varicolor
+      7: class.namespace.g.varicolor
+      8: class.namespace.h.varicolor
+      9: class.namespace.i.varicolor
+  - scope: entity.name.tag.varicolor
+    match: \b(p)(r)(i)(v)(a)(t)(e)\b
+    captures:
+      1: class.namespace.a.varicolor
+      2: class.namespace.b.varicolor
+      3: class.namespace.c.varicolor
+      4: class.namespace.d.varicolor
+      5: class.namespace.e.varicolor
+      6: class.namespace.f.varicolor
+      7: class.namespace.g.varicolor
+  - scope: keyword.control.modifier.varicolor
+    match: '{{modifier}}'
+
+  classes:
+  - scope: entity.namespace.varicolor
+    match: (?<=class)\s+{{generic}}\s*(:?)
+    captures:
+      1: entity.class.a.varicolor
+    push: _classes
+  - scope: entity.class.varicolor
+    match: (?<=class)\s+{{token}}\s*(:?)
+    captures:
+      1: entity.class.a.varicolor
+    push: _classes
+  - scope: entity.class.varicolor
+    match: \b(c)(l)(a)(s)(s)\b
+    captures:
+      1: entity.class.b.varicolor
+      2: entity.class.c.varicolor
+      3: entity.class.d.varicolor
+      4: entity.class.e.varicolor
+      5: entity.class.f.varicolor
+  - scope: entity.class.varicolor
+    match: (~\s*{{token}})\s*(\()
+    push: _constructor
+  - scope: entity.class.varicolor
+    match: \b(?<={{_accessor}}|static)\s+({{token}})\s*(\()+?
+    push: _constructor
+  _classes:
+  - meta_scope: varicolor
+  - meta_content_scope: entity.class.varicolor
+  - scope: punctuation.varicolor
+    match: (\{)
+    pop: true
+  - include: prototype
+  - include: hierarchy
+
+  _constructor:
+  - meta_scope: entity.class.varicolor
+  - include: hierarchy
+  - include: prototype
+  - scope: entity.class.varicolor
+    match: (\))
+    pop: true
+
+  _new_constructor:
+  - include: hierarchy
+  - include: prototype
+  - scope: entity.class.varicolor
+    match: (\))
+    pop: true
+
+  structures:
+  - scope: entity.struct.varicolor
+    match: \b(s)(t)(r)(u)(c)(t)\b
+    captures:
+      1: entity.struct.a.varicolor
+      2: entity.struct.b.varicolor
+      3: entity.struct.c.varicolor
+      4: entity.struct.d.varicolor
+      5: entity.struct.e.varicolor
+      6: entity.struct.f.varicolor
+  - scope: entity.struct.varicolor
+    match: \b(?<=struct)\s+(\w[\w_]*[\*\[\]\?]*)\b
+  - scope: constant.language.varicolor
+    match: (?<=(\->))\s*(\w+)
+    captures:
+      1: keyword.other.member.varicolor
+      2: entity.name.tag.varicolor
+  - scope: constant.language.varicolor
+    match: \b(\w+)\s*(?=(\->))
+    captures:
+      1: entity.name.tag.varicolor
+      2: keyword.other.member.varicolor
+  - scope: constant.language.varicolor
+    match: \b(struct)\s+(\w[\w\d_]*\*?\[?\]?)[\s\n]*
+    captures:
+      1: stoarage.varicolor
+      2: stoarage.type.varicolor
+
+  c_sharp:
+  - scope: constant.language.varicolor
+    match: \b((n)(e)(w))\b
+    captures:
+      2: entity.namespace.e.varicolor
+      3: entity.namespace.c.varicolor
+      4: entity.namespace.a.varicolor
+  - scope: entity.class.varicolor
+    match: \b(?<=new)\s+({{token}})\s*\(
+    push: _new_constructor
+  - scope: entity.namespace.varicolor
+    match: \b(v)(o)(i)(d)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+  - scope: entity.class.varicolor
+    match: \b(t)(h)(i)(s)\s*\(
+    captures:
+      1: entity.class.a.varicolor
+      2: entity.class.d.varicolor
+      3: entity.class.e.varicolor
+      4: entity.class.f.varicolor
+      5: entity.class.g.varicolor
+    push: _constructor
+  - scope: entity.namespace.varicolor
+    match: \b(t)(h)(i)(s)\b
+    captures:
+      1: entity.class.d.varicolor
+      2: entity.class.e.varicolor
+      3: entity.class.f.varicolor
+      4: entity.class.g.varicolor
+  - scope: entity.class.varicolor
+    match: (\))\s*(:)\s*(?=this)
+    captures:
+      2: entity.class.a.varicolor
+    pop: true
+
+  builtin_types:
+  - scope: source.varicolor
+    match: \b(v)(a)(r)\s+{{token}}
+    captures:
+      1: entity.namespace.i.varicolor
+      2: entity.namespace.g.varicolor
+      3: entity.namespace.e.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(i)(n)(t)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(b)(o)(o)(l)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(b)(y)(t)(e)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(c)(h)(a)(r)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(u)(i)(n)(t)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(l)(o)(n)(g)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(s)(b)(y)(t)(e)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+      5: entity.namespace.i.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(f)(l)(o)(a)(t)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+      5: entity.namespace.i.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(u)(l)(o)(n)(g)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+      5: entity.namespace.i.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(s)(h)(o)(r)(t)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.c.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.g.varicolor
+      5: entity.namespace.i.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(s)(t)(r)(i)(n)(g)\b
+    captures:
+      1: entity.namespace.f.varicolor
+      2: entity.namespace.e.varicolor
+      3: entity.namespace.d.varicolor
+      4: entity.namespace.c.varicolor
+      5: entity.namespace.b.varicolor
+      6: entity.namespace.a.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(u)(s)(h)(o)(r)(t)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.b.varicolor
+      3: entity.namespace.c.varicolor
+      4: entity.namespace.d.varicolor
+      5: entity.namespace.e.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(o)(b)(j)(e)(c)(t)\b
+    captures:
+      1: entity.namespace.i.varicolor
+      2: entity.namespace.h.varicolor
+      3: entity.namespace.g.varicolor
+      4: entity.namespace.f.varicolor
+      5: entity.namespace.e.varicolor
+      6: entity.namespace.d.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(d)(o)(u)(b)(l)(e)\b
+    captures:
+      1: entity.namespace.a.varicolor
+      2: entity.namespace.b.varicolor
+      3: entity.namespace.c.varicolor
+      4: entity.namespace.d.varicolor
+      5: entity.namespace.e.varicolor
+      6: entity.namespace.f.varicolor
+  - scope: entity.namespace.varicolor
+    match: \b(d)(e)(c)(i)(m)(a)(l)\b
+    captures:
+      1: entity.namespace.h.varicolor
+      2: entity.namespace.g.varicolor
+      3: entity.namespace.f.varicolor
+      4: entity.namespace.e.varicolor
+      5: entity.namespace.d.varicolor
+      6: entity.namespace.c.varicolor
+      7: entity.namespace.b.varicolor
+
+  functions:
+  - scope: entity.function.varicolor
+    match: \b(d)(e)(l)(e)(g)(a)(t)(e)\b
+    #captures:
+    #  1: entity.function.generic.a.varicolor
+    #  2: entity.function.generic.b.varicolor
+    #  3: entity.function.generic.c.varicolor
+    #  4: entity.function.generic.d.varicolor
+    #  5: entity.function.generic.e.varicolor
+    #  6: entity.function.generic.f.varicolor
+    #  7: entity.function.generic.g.varicolor
+    #  8: entity.function.generic.h.varicolor
+  - scope: entity.function.varicolor
+    match: (function|func|def)\s+{{token}}\s*\(
+    captures:
+      1: keyword.storage.varicolor
+    push: _functions
+  - scope: entity.function.varicolor
+    match: ({{generic}})\s+({{token}})s*(\()+?
+    captures:
+      1: entity.namespace.varicolor
+      2: entity.function.varicolor
+    push: _functions
+  - scope: entity.function.varicolor
+    match: (?<={{_keyword}})\s+{{token}}s*(\()+?
+    push: function_call
+  - scope: entity.function.varicolor
+    match: (?<={{_type}})\s+([A-Za-z_])({{token}})s*(\()+?
+    push: function_call
+  - scope: entity.function.varicolor
+    match: ({{token}}[\[\]\*]*)\s+({{token}})\s*\(
+    captures:
+      1: entity.class.a.varicolor
+    push: _functions
+  - scope: entity.function.varicolor
+    match: ({{token}})(\()+?
+    push: function_call
+  _functions:
+  - meta_scope: entity.function.varicolor
+  - include: hierarchy
+  - scope: entity.function.varicolor
+    match: \)+?
+    pop: true
+  - include: prototype
+  function_call:
+  - include: prototype
+  - include: hierarchy
+  - scope: entity.function.varicolor
+    match: (\))+?
+    pop: true
+
+  generics:
+  - scope: entity.namespace.generic.varicolor
+    match: '\b({{token}}::{{token}}[\[\]\*]*)\s+({{generic}})\s*\(+?'
+    captures:
+      1: entity.class.a.varicolor
+      2: entity.function.generic.varicolor
+    push: _generics
+  - scope: entity.namespace.generic.varicolor
+    match: '\b({{token}}::{{generic}}[\[\]\*]*)'
+  - scope: entity.function.generic.varicolor
+    match: '\b({{token}}[\[\]\*]*)\s+({{generic}})\s*\(+?'
+    captures:
+      1: entity.class.a.varicolor
+      2: entity.function.generic.varicolor
+    push: _generics
+  - scope: entity.function.generic.varicolor
+    match: '\b{{generic}}\s*\(+?'
+    push: _generics
+  - scope: keyword.other.varicolor
+    match: \b(w)(h)(e)(r)(e)\b
+    captures:
+      1: keyword.i.new.varicolor
+      2: keyword.g.new.varicolor
+      3: keyword.e.new.varicolor
+      4: keyword.c.new.varicolor
+      5: keyword.a.new.varicolor
+  - scope: entity.function.generic.varicolor
+    match: (?<=where)\s+{{token}}\s*(:)\s*({{token}})
+    captures:
+      1: keyword.i.new.varicolor
+      2: entity.class.d.varicolor
+  _generics:
+  - include: prototype
+  - include: hierarchy
+  - scope: entity.function.generic.varicolor
+    match: (\))+?
+    pop: true
+
+  pointers:
+  - scope: storage.member.varicolor
+    match: \b({{type}})(\*)
+  - scope: generic.function.varicolor
+    match: \b(\w)(\w?)(\w?)(\w?)(\w?)(\w?)(\w*)(\?)
+    captures:
+      1: entity.namespace.g.varicolor
+      2: entity.namespace.f.varicolor
+      3: entity.namespace.e.varicolor
+      4: entity.namespace.d.varicolor
+      5: entity.namespace.c.varicolor
+      6: entity.namespace.b.varicolor
+      7: entity.namespace.a.varicolor
+      8: entity.namespace.a.varicolor
+
+  properties:
+  - scope: property.varicolor
+    match: '\b(?<={{_type}})(\s*[\[\]<>\?\*\:]*)\s+(@?\w+)\s*(\{)+?'
+    captures:
+      2: entity.name.tag.varicolor
+      3: punctuation.varicolor
+  - scope: property.varicolor
+    match: '({{token}}\s*\b[\[\]<>\?\*\:]*)\s+(\@?\w+)\s*(\{)+?'
+    captures:
+      1: keyword.type.builtin.varicolor
+      2: keyword.storage.varicolor
+      3: punctuation.varicolor
+  - scope: entity.function.generic.varicolor
+    match: \b((g)(e)(t)|(s)(e)(t))\b
+    captures:
+      2: keyword.i.new.varicolor
+      3: keyword.g.new.varicolor
+      4: keyword.e.new.varicolor
+      5: keyword.e.new.varicolor
+      6: keyword.g.new.varicolor
+      7: keyword.i.new.varicolor
+
+  indexers:
+  - scope: varicolor
+    match: ({{type}})\s*(\[)+?
+    captures:
+      1: keyword.type.builtin.varicolor
+      2: keyword.type.builtin.varicolor
+    push: _indexers
+
+  _indexers:
+  - include: prototype
+  - scope: varicolor
+    match: (\])+?
+    captures:
+      1: keyword.type.builtin.varicolor
+    pop: true
+
+  unity_types:
+  - scope: entity.namespace.varicolor
+    match: \b(Camera|Quaternion|Matrix4x4|Texture2D|GUISkin|GUIStyle|GameObject|Vector2|Vector2Field|Vector3|Vector3Field|Vector4|Vector4Field|Vertex|Vertex3|Transform|Touch|TouchPhase|Color|Rect|List)\b([\[\]\?]*)
+
+  attributes:
+  - scope: modifier.attribute.varicolor
+    match: (^\s*(\[))+?
+    push: _attributes
+  _attributes:
+  - include: prototype
+  - scope: modifier.attribute.varicolor
+    match: (\])+?
+    pop: true
+
+  aliases:
+  - scope: entity.namespace.varicolor
+    match: \w+::\w+\[?\]?
+  #- scope: generic.function.varicolor
+  #  match: \b(\w)(\w?)(\w?)(\w?)(\w?)(\w?)(\w*)(\:\:)(\w)(\w?)(\w?)(\w?)(\w?)(\w?)(\w?)(\w?)(\w?)(\w*)
+  #  captures:
+  #    1: namespace.alias.g.varicolor
+  #    2: namespace.alias.f.varicolor
+  #    3: namespace.alias.e.varicolor
+  #    4: namespace.alias.d.varicolor
+  #    5: namespace.alias.c.varicolor
+  #    6: namespace.alias.b.varicolor
+  #    7: namespace.alias.a.varicolor
+  #    8: class.namespace.a.varicolor
+  #    9: class.namespace.b.varicolor
+  #    10: class.namespace.c.varicolor
+  #    11: class.namespace.d.varicolor
+  #    12: class.namespace.e.varicolor
+  #    13: class.namespace.f.varicolor
+  #    14: class.namespace.g.varicolor
+  #    15: class.namespace.h.varicolor
+  #    16: class.namespace.i.varicolor
+  #    17: class.namespace.j.varicolor
+  #    18: class.namespace.k.varicolor
+  #    19: class.namespace.varicolor
+
+  indirection:
+  - scope: member.storage.a.varicolor
+    match: \b((\w+)(\.))((\w+)(\.))?((\w+)(\.))?((\w+)(\.))?((\w+)(\.))?((\w+)(\.))?((\w+)(\.))?((\w+)(\.)){64}?
+    captures:
+      2: member.storage.varicolor
+      3: variable.other.varicolor
+      5: member.storage.b.varicolor
+      6: variable.other.varicolor
+      8: member.storage.c.varicolor
+      9: variable.other.varicolor
+      11: member.storage.d.varicolor
+      12: variable.other.varicolor
+      14: member.storage.e.varicolor
+      15: variable.other.varicolor
+      17: member.storage.f.varicolor
+      18: variable.other.varicolor
+      20: member.storage.g.varicolor
+      21: variable.other.varicolor
+      23: member.storage.h.varicolor
+      24: variable.other.varicolor
+      26: member.storage.a.varicolor
+      27: variable.other.varicolor
+
+  defined_types:
+  - scope: source.varicolor
+    match: ({{token}}(\[\])?)\s+{{token}}
+    captures:
+      1: entity.class.d.varicolor
+
+  typedef:
+  - match: \btypedef\b
+    scope: keyword.varicolor
+    set: [_typedef, typename]
+  typename:
+  - match: \bstruct\b
+    set:
+    - match: "{"
+      set:
+      - match: "}"
+        pop: true
+  - match: \b[A-Za-z_][A-Za-z_0-9]*\b
+    pop: true
+  _typedef:
+  - match: \b[A-Za-z_][A-Za-z_0-9]*\b
+    scope: entity.name.type
+    pop: true
 
 
+# recursive scopes, for inflating class brackets
+  hierarchy:
+  - scope: parentheses.a.varicolor
+    match: (\()+?
+    push: _parentheses_0
+  - scope: varicolor
+    match: (\[)+?
+    push: _brackets_0
+  #- scope: punctuation.varicolor
+  #  match: (\{)+?
+  #  push: _braces_0
+  - scope: punctuation.varicolor
+    match: (<)+?
+    push: _angles_0
 
+  _parentheses_0:
+  - include: prototype
+  - scope: parentheses.b.varicolor
+    match: (\()+?
+    push: _parentheses_1
+  - scope: parentheses.a.varicolor
+    match: (\))+?
+    pop: true
+  _parentheses_1:
+  - include: prototype
+  - scope: parentheses.c.varicolor
+    match: (\()+?
+    push: _parentheses_2
+  - scope: parentheses.b.varicolor
+    match: (\))+?
+    pop: true
+  _parentheses_2:
+  - include: prototype
+  - scope: parentheses.d.varicolor
+    match: (\()+?
+    push: _parentheses_3
+  - scope: parentheses.c.varicolor
+    match: (\))+?
+    pop: true
+  _parentheses_3:
+  - include: prototype
+  - scope: parentheses.e.varicolor
+    match: (\()+?
+    push: _parentheses_4
+  - scope: parentheses.d.varicolor
+    match: (\))+?
+    pop: true
+  _parentheses_4:
+  - include: prototype
+  - scope: parentheses.a.varicolor
+    match: (\()+?
+    push: _parentheses_0
+  - scope: parentheses.e.varicolor
+    match: (\))+?
+    pop: true
+  _brackets_0:
+  - include: prototype
+  - scope: source.varicolor
+    match: (\[)+?
+    push: _brackets_1
+  - scope: source.varicolor
+    match: (\])+?
+    pop: true
+  _brackets_1:
+  - include: prototype
+  - scope: source.varicolor
+    match: (\[)+?
+    push: _brackets_0
+  - scope: source.varicolor
+    match: (\])+?
+    pop: true
+  #_braces_0:
+  #- include: prototype
+  #- scope: punctuation.varicolor
+  #  match: (\{)+?
+  #  push: _braces_1
+  #- scope: punctuation.varicolor
+  #  match: (\})+?
+  #  pop: true
+  #_braces_1:
+  #- include: prototype
+  #- scope: punctuation.varicolor
+  #  match: (\{)+?
+  #  push: _braces_0
+  #- scope: punctuation.varicolor
+  #  match: (\})+?
+  #  pop: true
+  _angles_0:
+  - include: prototype
+  - scope: punctuation.varicolor
+    match: (<)+?
+    push: _angles_1
+  - scope: punctuation.varicolor
+    match: (>)+?
+    pop: true
+  _angles_1:
+  - include: prototype
+  - scope: punctuation.varicolor
+    match: (<)+?
+    push: _angles_0
+  - scope: punctuation.varicolor
+    match: (>)+?
+    pop: true
 
+  braces:
+  - scope: punctuation.varicolor
+    match: '[\{\}]'
+
+  lexical_guesswork:
+  - scope: source.varicolor
+    match: IO
+  - scope: entity.interface.varicolor
+    match: \bI{{generic}}
+  - scope: entity.namespace.generic.varicolor
+    match: '\b{{generic}}(?!\()'
+  - scope: entity.interface.varicolor
+    match: \bI[A-Z_]\w*\b
+
+  main:
+  - scope: constant.language.varicolor
+    match: \b(null|base|value|unsafe|readonly|ref|out)\b
+  - scope: keyword.control.modifier.varicolor
+    match: \b(inout|const|float\dx?\d?)\b
+  - scope: keyword.varicolor
+    match: Ben Scott
+  - include: hierarchy
+
+...
