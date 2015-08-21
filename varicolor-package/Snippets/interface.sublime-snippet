@@ -1,0 +1,9 @@
+<snippet>
+	<content><![CDATA[
+public interface ${1:IInterface} : ${2:IBase} {
+	${0}
+}
+]]></content>
+	<tabTrigger>interface</tabTrigger>
+	<scope>varicolor</scope>
+</snippet>

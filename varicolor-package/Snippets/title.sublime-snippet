@@ -1,0 +1,7 @@
+<snippet>
+	<content><![CDATA[
+/* Ben Scott * bescott@andrew.cmu.edu * 2015-07-25 * ${1:File} */
+]]></content>
+	<tabTrigger>BenScott</tabTrigger>
+	<scope>varicolor</scope>
+</snippet>

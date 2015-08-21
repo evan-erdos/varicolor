@@ -1,0 +1,17 @@
+<snippet>
+	<content><![CDATA[
+public class ${1:Class} : ${2:Base} {
+	${0}
+
+	public ${1:Class}() {
+
+	}
+
+	public void ${3:Method}() {
+
+	}
+}
+]]></content>
+	<tabTrigger>class</tabTrigger>
+	<scope>varicolor</scope>
+</snippet>
